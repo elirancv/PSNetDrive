@@ -123,7 +123,7 @@ SHARE_NAME=DRIVE_LETTER|UNC_PATH|DESCRIPTION|USERNAME|PASSWORD
 ```powershell
 # Simple Format:
 # SHARE_NAME=DRIVE_LETTER|UNC_PATH|DESCRIPTION|USERNAME|PASSWORD
-# Example: ARCHIVE=A|\\server\share|Archive Drive|user|pass
+# Example: STORAGE=S|\\server\share|Storage Drive|user|pass
 
 # Network Share by IP (Anonymous)
 PUBLIC=P|\\192.168.1.100\public|Public Share||
