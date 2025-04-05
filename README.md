@@ -120,21 +120,36 @@ SHARE_NAME=DRIVE_LETTER|UNC_PATH|DESCRIPTION|USERNAME|PASSWORD
 
 ### Example Configuration
 
-```
-# Archive Share
-ARCHIVE=A|\\192.168.1.102\Archive|Archive Drive||
+```powershell
+#====================#
+# Corporate Shares   #
+#====================#
 
-# Incoming Share
-INCOMING=I|\\192.168.1.102\Incoming|Incoming Files||
+# Department Shares (Domain Authentication)
+FINANCE=F|\\corp-fs01\finance|Finance Department|%USERDOMAIN%\%USERNAME%|
+LEGAL=L|\\corp-fs02\legal|Legal Department|%USERDOMAIN%\%USERNAME%|
 
-# Multimedia Share
-MULTIMEDIA=M|\\192.168.1.100\Multimedia|Multimedia Files||
+# Team Shares (Domain Authentication)
+TEAM_DOCS=T|\\corp-fs01\teams|Team Documents|%USERDOMAIN%\%USERNAME%|
 
-# Storage Share
-STORAGE=S|\\192.168.1.101\Storage|Storage Drive||
+#====================#
+# Public Resources   #
+#====================#
 
-# Telegram Share
-TELEGRAM=T|\\192.168.1.101\Telegram|Telegram Files||
+# Read-Only Shares (Anonymous Access)
+POLICIES=O|\\corp-fs02\policies|Company Policies||
+
+#====================#
+# Secured Resources  #
+#====================#
+
+# Restricted Share (Service Account)
+# Example password shown - DO NOT USE THIS!
+REPORTS=R|\\corp-fs03\reports|Financial Reports|svc.reports|P@ssw0rd!2024
+
+# Note: 1. %USERDOMAIN%\%USERNAME% automatically uses current Windows credentials
+#       2. Empty password fields trigger secure password prompt
+#       3. The password shown above is an EXAMPLE ONLY - DO NOT USE IT!
 ```
 
 ## Advanced Features
