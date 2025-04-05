@@ -101,25 +101,10 @@ Usage:
     .\PSNetDrive.ps1 List
 
 Description:
-    Shows all currently connected network drives with their paths and status.
+    Shows all configured network drives with their connection status and server accessibility.
 
 Example:
     .\PSNetDrive.ps1 List
-"@
-        }
-        'Status' {
-@"
-Show Network Drive Status
-
-Usage:
-    .\PSNetDrive.ps1 Status
-
-Description:
-    Shows detailed connection status for all configured network drives,
-    including whether they are connected and accessible.
-
-Example:
-    .\PSNetDrive.ps1 Status
 "@
         }
     }
@@ -139,8 +124,7 @@ Commands:
     Connect <drive|All>    Connect specified drive letter or all drives from .env
     Disconnect <drive|All> Disconnect specified drive letter or all network drives
     Reconnect <drive|All>  Reconnect (refresh) specified drive or all drives
-    List                   List all currently connected network drives
-    Status                 Show connection status of all configured drives
+    List                   List all network drives with connection status
     Help                   Show this help message
 
 Options:
@@ -153,8 +137,7 @@ Examples:
     .\PSNetDrive.ps1 Connect S          # Connect specific drive (S:)
     .\PSNetDrive.ps1 Disconnect M -y    # Disconnect specific drive (M:)
     .\PSNetDrive.ps1 Disconnect All -y  # Disconnect all network drives without prompting
-    .\PSNetDrive.ps1 List               # List current connections
-    .\PSNetDrive.ps1 Status             # Show connection status
+    .\PSNetDrive.ps1 List               # Show network drive status
     .\PSNetDrive.ps1 Reconnect All -y   # Reconnect all drives without prompting
 
 "@ -ForegroundColor Cyan
@@ -167,7 +150,7 @@ $y = $args -contains '-y'
 
 # Show help if no parameters or help requested
 if (-not $Command -or $Command -eq 'Help' -or $args -contains '-?' -or $args -contains '?' -or $args -contains '-help' -or $args -contains '--help') {
-    if ($Command -and $Command -ne 'Help' -and $Command -in @('Connect', 'Disconnect', 'Reconnect', 'List', 'Status')) {
+    if ($Command -and $Command -ne 'Help' -and $Command -in @('Connect', 'Disconnect', 'Reconnect', 'List')) {
         Show-CommandHelp -Command $Command
         exit 0
     }
@@ -176,7 +159,7 @@ if (-not $Command -or $Command -eq 'Help' -or $args -contains '-?' -or $args -co
 }
 
 # Validate command
-$validCommands = @('Connect', 'Disconnect', 'Reconnect', 'List', 'Status', 'Help')
+$validCommands = @('Connect', 'Disconnect', 'Reconnect', 'List', 'Help')
 if ($Command -notin $validCommands) {
     Write-Error "Invalid command: $Command"
     Show-Help
@@ -240,30 +223,20 @@ function Get-ShareConfig {
     return $config
 }
 
-# Function to list network drives
+# Function to show network drives with status
 function Show-NetworkDrives {
-    Write-Host "`nCurrently Connected Network Drives:" -ForegroundColor Yellow
-    $drives = Get-CimInstance Win32_NetworkConnection | 
+    Write-Host "`nNetwork Drive Status:" -ForegroundColor Yellow
+    
+    # Get current network drives
+    $currentDrives = Get-CimInstance Win32_NetworkConnection | 
         Where-Object { $_.Status -eq 'OK' -and $_.RemoteName -notlike '*\IPC$' } |
         Select-Object @{N='Name';E={$_.LocalName.TrimEnd(':')}}, 
                     @{N='Path';E={$_.RemoteName}},
                     @{N='Status';E={$_.Status}}
     
-    if ($drives) {
-        $drives | Format-Table -AutoSize
-    } else {
-        Write-Host "No network drives currently connected." -ForegroundColor Gray
-    }
-}
-
-# Function to show connection status
-function Show-ConnectionStatus {
-    Write-Host "`nNetwork Drive Connection Status:" -ForegroundColor Yellow
+    # Get configured drives from .env
     $configs = Get-ShareConfiguration
-    $currentDrives = Get-CimInstance Win32_NetworkConnection | 
-        Where-Object { $_.RemoteName -notlike '*\IPC$' } |
-        Select-Object LocalName, RemoteName, @{N='Connected';E={$_.Status -eq 'OK'}}
-
+    
     # Test all servers at once for efficiency
     $servers = $configs | ForEach-Object { ($_.Path -split '\\')[2] } | Select-Object -Unique
     Write-Host "Checking server connectivity..." -ForegroundColor Gray
@@ -279,30 +252,46 @@ function Show-ConnectionStatus {
             $serverStatus[$server] = $false
         }
     }
-
+    
+    # Create a comprehensive table with all information
+    $driveStatusList = @()
+    
     foreach ($config in $configs) {
         $server = ($config.Path -split '\\')[2]
-        $driveLetter = "$($config.Name):"
-        $driveStatus = $currentDrives | Where-Object { $_.LocalName -eq $driveLetter }
+        $driveLetter = $config.Name
+        $currentDrive = $currentDrives | Where-Object { $_.Name -eq $driveLetter }
         
-        $status = @{
-            Drive = $config.Name
+        $status = [PSCustomObject]@{
+            Drive = $driveLetter
             Path = $config.Path
-            Connected = [bool]$driveStatus.Connected
-            Accessible = $serverStatus[$server]
+            Connected = [bool]$currentDrive
+            ServerAccessible = $serverStatus[$server]
+            Status = if ($currentDrive) { $currentDrive.Status } else { "Not Connected" }
         }
-
-        # Display status with color coding
-        $statusColor = if ($status.Connected -and $status.Accessible) { 'Green' }
-                      elseif ($status.Accessible) { 'Yellow' }
-                      else { 'Red' }
-
-        $statusText = if ($status.Connected -and $status.Accessible) { "Connected & Accessible" }
-                     elseif ($status.Connected) { "Connected but Server Inaccessible" }
-                     elseif ($status.Accessible) { "Server Accessible but Drive Not Connected" }
-                     else { "Server Not Accessible" }
-
-        Write-Host "$($status.Drive): $($status.Path) - $statusText" -ForegroundColor $statusColor
+        
+        $driveStatusList += $status
+    }
+    
+    # Display the comprehensive table
+    if ($driveStatusList.Count -gt 0) {
+        Write-Host "`nNetwork Drive Status:" -ForegroundColor Cyan
+        
+        # Format the table with color coding
+        $driveStatusList | ForEach-Object {
+            $statusColor = if ($_.Connected -and $_.ServerAccessible) { 'Green' }
+                          elseif ($_.Connected) { 'Yellow' }
+                          elseif ($_.ServerAccessible) { 'Yellow' }
+                          else { 'Red' }
+            
+            $statusText = if ($_.Connected -and $_.ServerAccessible) { "Connected & Accessible" }
+                       elseif ($_.Connected) { "Connected but Server Inaccessible" }
+                       elseif ($_.ServerAccessible) { "Server Accessible but Drive Not Connected" }
+                       else { "Server Not Accessible" }
+            
+            Write-Host "$($_.Drive): $($_.Path) - $statusText" -ForegroundColor $statusColor
+        }
+    } else {
+        Write-Host "`nNo network drives configured or connected." -ForegroundColor Gray
     }
 }
 
@@ -477,9 +466,6 @@ try {
         }
         'List' {
             Show-NetworkDrives
-        }
-        'Status' {
-            Show-ConnectionStatus
         }
     }
 } catch {
