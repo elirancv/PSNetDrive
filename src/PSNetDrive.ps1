@@ -345,17 +345,19 @@ function Disconnect-AllNetworkDrives {
     
     if ($networkDrives.Count -eq 0) {
         Write-Host "No network drives found to disconnect."
-        return
+        return $true
     }
 
     Write-Host "Found $($networkDrives.Count) network drive(s) to disconnect:`n"
-    $networkDrives | Format-Table Name, DisplayRoot
+    
+    # Ensure the table is displayed properly
+    $networkDrives | Format-Table Name, DisplayRoot -AutoSize | Out-String | Write-Host
 
     if (-not $AutoYes) {
         $confirmation = Read-Host "`nDo you want to disconnect all these drives? (y/N)"
         if ($confirmation -ne 'y' -and $confirmation -ne 'Y') {
             Write-Host "Operation cancelled."
-            return
+            return $false
         }
     }
 
@@ -372,6 +374,8 @@ function Disconnect-AllNetworkDrives {
     else {
         Write-Host "`nDisconnected $successCount out of $($networkDrives.Count) network drives."
     }
+    
+    return $true
 }
 
 # Main execution
@@ -385,7 +389,11 @@ try {
                 } else { 
                     @(Get-ShareConfig -DriveLetter $Drive) 
                 }
-                Connect-NetworkShares -Configs $configs -AutoYes:$y
+                $connectSuccess = Connect-NetworkShares -Configs $configs -AutoYes:$y
+                if (-not $connectSuccess) {
+                    Write-Host "Connection operation was cancelled."
+                    exit 0
+                }
             } else {
                 Write-Error "Drive letter '$Drive' not found in configuration"
                 Show-Help
@@ -411,8 +419,9 @@ try {
         }
         'Reconnect' {
             if ($Drive -eq 'All' -or (Get-ShareConfig -DriveLetter $Drive)) {
+                $disconnectSuccess = $true
                 if ($Drive -eq 'All') {
-                    Disconnect-AllNetworkDrives -AutoYes:$y
+                    $disconnectSuccess = Disconnect-AllNetworkDrives -AutoYes:$y
                 } else {
                     # Check if the drive exists
                     $existingDrive = Get-PSDrive -Name $Drive -ErrorAction SilentlyContinue
@@ -420,13 +429,21 @@ try {
                         Disconnect-NetworkDrive -DriveLetter $Drive
                     }
                 }
-                Start-Sleep -Seconds 2  # Wait for disconnection
-                $configs = if ($Drive -eq 'All') { 
-                    Get-ShareConfiguration 
-                } else { 
-                    @(Get-ShareConfig -DriveLetter $Drive) 
+                
+                # Only proceed with connection if disconnection was successful or not needed
+                if ($disconnectSuccess) {
+                    Start-Sleep -Seconds 2  # Wait for disconnection
+                    $configs = if ($Drive -eq 'All') { 
+                        Get-ShareConfiguration 
+                    } else { 
+                        @(Get-ShareConfig -DriveLetter $Drive) 
+                    }
+                    $connectSuccess = Connect-NetworkShares -Configs $configs -AutoYes:$y
+                    if (-not $connectSuccess) {
+                        Write-Host "Connection operation was cancelled."
+                        exit 0
+                    }
                 }
-                Connect-NetworkShares -Configs $configs -AutoYes:$y
             } else {
                 Write-Error "Drive letter '$Drive' not found in configuration"
                 Show-Help

@@ -84,6 +84,21 @@ function Connect-NetworkShares {
         [switch]$AutoYes
     )
 
+    # If there are multiple drives to connect and AutoYes is not set, ask for confirmation
+    if ($Configs.Count -gt 1 -and -not $AutoYes) {
+        Write-Host "Found $($Configs.Count) network drive(s) to connect:`n"
+        
+        # Create a table of drives to connect
+        $drivesToConnect = $Configs | Select-Object @{N='Drive';E={$_.Name}}, @{N='Path';E={$_.Path}}
+        $drivesToConnect | Format-Table Drive, Path -AutoSize | Out-String | Write-Host
+        
+        $confirmation = Read-Host "`nDo you want to connect all these drives? (y/N)"
+        if ($confirmation -ne 'y' -and $confirmation -ne 'Y') {
+            Write-Host "Operation cancelled."
+            return $false
+        }
+    }
+
     # Group shares by server to optimize connectivity checks
     $serverGroups = $Configs | Group-Object { ($_.Path -split '\\')[2] }
     
@@ -184,6 +199,8 @@ function Connect-NetworkShares {
             }
         }
     }
+    
+    return $true
 }
 
 # Function to initialize and connect all shares
