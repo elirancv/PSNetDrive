@@ -15,12 +15,12 @@
 </p>
 
 <p align="center">
-  <a href="#key-features">Key Features</a> •
-  <a href="#quick-start">Quick Start</a> •
-  <a href="#usage">Usage</a> •
-  <a href="#configuration">Configuration</a> •
-  <a href="#security">Security</a> •
-  <a href="#contributing">Contributing</a>
+  <a href="#-key-features">Key Features</a> •
+  <a href="#-quick-start">Quick Start</a> •
+  <a href="#-usage">Usage</a> •
+  <a href="#-configuration">Configuration</a> •
+  <a href="#-security">Security</a> •
+  <a href="#-contributing">Contributing</a>
 </p>
 
 ## ✨ Key Features
