@@ -129,8 +129,8 @@ This project is licensed under the MIT License - see [LICENSE](docs/LICENSE) for
 <div align="center">
   <p>Made with ❤️ by <a href="https://github.com/elirancv">elirancv</a></p>
   <p>
-    <a href="https://github.com/elirancv/PSNetDrive/issues">Report Bug</a>
+    <a href="https://github.com/elirancv/PSNetDrive/issues/new?template=bug_report.md&labels=bug&title=[Bug]:">Report Bug</a>
     •
-    <a href="https://github.com/elirancv/PSNetDrive/issues">Request Feature</a>
+    <a href="https://github.com/elirancv/PSNetDrive/issues/new?template=feature_request.md&labels=enhancement&title=[Feature]:">Request Feature</a>
   </p>
 </div>
