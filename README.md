@@ -11,231 +11,94 @@
 
 ## Overview
 
-PSNetDrive is a robust PowerShell-based command-line interface (CLI) tool designed for efficient management of network drive connections in Windows environments. It provides a comprehensive set of features for connecting, disconnecting, and monitoring network drives with enhanced reliability and user experience.
+PSNetDrive is a PowerShell CLI tool for managing network drive connections in Windows environments. It provides a simple interface for connecting, disconnecting, and monitoring network drives with features like parallel processing, retry mechanisms, and secure credential handling.
 
-## Key Features
+## Quick Start
 
-- **Intelligent Drive Management**: Connect, disconnect, or reconnect network drives with a single command
-- **Bulk Operations**: Manage all configured drives simultaneously with the `All` parameter
-- **Smart Connectivity Checks**: Automatically verifies server accessibility before attempting connections
-- **Retry Mechanism**: Implements exponential backoff for reliable connections in unstable networks
-- **Detailed Status Reporting**: Color-coded status information for quick visual assessment
-- **Comprehensive Help System**: Command-specific help with detailed examples
-- **Secure Credential Handling**: Support for both anonymous and authenticated shares
-- **Non-Interactive Mode**: Use the `-y` flag for automated operations without prompts
-- **Parallel Processing**: Optimized for connecting multiple drives efficiently
-- **Robust Error Handling**: Detailed error messages and fallback mechanisms
-
-## Requirements
-
-- **Operating System**: Windows 10/11 or Windows Server 2016/2019/2022
-- **PowerShell**: Version 5.1 or later
-- **Network**: Access to the network shares you want to connect
-
-## Installation
-
-1. Clone this repository:
+1. **Install**
    ```powershell
    git clone https://github.com/elirancv/PSNetDrive.git
    cd PSNetDrive
-   ```
-
-2. Copy the example configuration file:
-   ```powershell
    Copy-Item examples\.env.example .env
    ```
 
-3. Edit the `.env` file with your network share configurations (see [Configuration](#configuration) section)
+2. **Configure** - Edit `.env` with your network shares:
+   ```
+   SHARE_NAME=DRIVE_LETTER|UNC_PATH|DESCRIPTION|USERNAME|PASSWORD
+   ```
 
-## Usage
+3. **Use**
+   ```powershell
+   # Connect all drives
+   .\src\PSNetDrive.ps1 Connect All
 
-```powershell
-.\src\PSNetDrive.ps1 <command> [options]
-```
+   # Connect specific drive
+   .\src\PSNetDrive.ps1 Connect S
 
-### Commands
+   # List current connections
+   .\src\PSNetDrive.ps1 List
+   ```
 
-| Command | Description |
-|---------|-------------|
-| `Connect <drive\|All>` | Connect specified drive letter or all configured drives |
-| `Disconnect <drive\|All>` | Disconnect specified drive letter or all network drives |
-| `Reconnect <drive\|All>` | Reconnect (refresh) specified drive or all drives |
-| `List` | Show currently connected network drives |
-| `Status` | Show detailed connection status of all configured drives |
-| `Help` | Display help information |
+## Features
 
-### Options
+- **Drive Management**: Connect, disconnect, or reconnect network drives
+- **Bulk Operations**: Manage all configured drives with `All` parameter
+- **Smart Connectivity**: Server accessibility verification before connections
+- **Retry Mechanism**: Exponential backoff for reliable connections
+- **Parallel Processing**: Efficient handling of multiple drives
+- **Secure Credentials**: Support for authenticated shares
+- **Non-Interactive Mode**: Use `-y` flag for automated operations
 
-| Option | Description |
-|--------|-------------|
-| `-y` | Automatic yes to prompts (no confirmation needed) |
+## Requirements
 
-### Examples
-
-```powershell
-# Connect all drives without prompting
-.\src\PSNetDrive.ps1 Connect All -y
-
-# Connect specific drive (S:)
-.\src\PSNetDrive.ps1 Connect S
-
-# Disconnect specific drive without prompting
-.\src\PSNetDrive.ps1 Disconnect M -y
-
-# Disconnect all network drives
-.\src\PSNetDrive.ps1 Disconnect All
-
-# List current connections
-.\src\PSNetDrive.ps1 List
-
-# Show connection status
-.\src\PSNetDrive.ps1 Status
-
-# Reconnect all drives
-.\src\PSNetDrive.ps1 Reconnect All -y
-
-# Show help for specific command
-.\src\PSNetDrive.ps1 Connect -?
-```
+- Windows 10/11 or Windows Server 2016/2019/2022
+- PowerShell 5.1+
+- Network access to target shares
 
 ## Configuration
 
-The `.env` file uses a simple format for configuring network shares:
-
+The `.env` file uses a simple format:
 ```
 SHARE_NAME=DRIVE_LETTER|UNC_PATH|DESCRIPTION|USERNAME|PASSWORD
 ```
 
-### Configuration Parameters
-
-| Parameter | Description | Required |
-|-----------|-------------|----------|
-| `SHARE_NAME` | Unique identifier for the share | Yes |
-| `DRIVE_LETTER` | Drive letter (A-Z) to assign to the drive | Yes |
-| `UNC_PATH` | Network path in the format `\\server\share` | Yes |
-| `DESCRIPTION` | Brief description of the share | No |
-| `USERNAME` | Domain username for authentication | No |
-| `PASSWORD` | Password for authentication | No |
-
-### Example Configuration
-
-```powershell
-# Simple Format:
-# SHARE_NAME=DRIVE_LETTER|UNC_PATH|DESCRIPTION|USERNAME|PASSWORD
-# Example: STORAGE=S|\\server\share|Storage Drive|user|pass
-
-# Network Share by IP (Anonymous)
+Example:
+```
+# Anonymous share
 PUBLIC=P|\\192.168.1.100\public|Public Share||
 
-# Network Share by IP (Domain Auth)
-DEPT=D|\\192.168.1.101\department|Department Files|%USERDOMAIN%\%USERNAME%|
-
-# Network Share by IP (Local Auth)
-DATA=S|\\10.0.0.50\data|Data Files|localuser|password123
-
-# Network Share by Hostname
-TEAM=T|\\fileserver\team|Team Files|domain\username|
-
-# Multiple shares on same server
-DOCS=M|\\192.168.1.100\documents|Documents||
-APPS=A|\\192.168.1.100\applications|Applications||
+# Authenticated share
+DATA=S|\\10.0.0.50\data|Data Files|domain\user|password
 ```
 
-## Advanced Features
+## Commands
 
-### Retry Mechanism
+| Command | Description | Example |
+|---------|-------------|---------|
+| `Connect <drive\|All>` | Connect drive(s) | `Connect All -y` |
+| `Disconnect <drive\|All>` | Disconnect drive(s) | `Disconnect M` |
+| `Reconnect <drive\|All>` | Refresh connection(s) | `Reconnect All` |
+| `List` | Show connections | `List` |
+| `Status` | Check drive status | `Status` |
 
-PSNetDrive implements a sophisticated retry mechanism with exponential backoff:
+## Security
 
-- Automatically retries failed connections up to 3 times
-- Increases delay between retries (2s, 4s, 6s)
-- Provides detailed status messages during retry attempts
-
-### Server Connectivity Verification
-
-Before attempting to connect to a drive, PSNetDrive:
-
-1. Verifies server accessibility using `Test-NetConnection`
-2. Groups shares by server to minimize connectivity checks
-3. Provides clear status messages about server accessibility
-
-### Drive Existence Handling
-
-When connecting a drive, PSNetDrive:
-
-1. Checks if the drive already exists
-2. Verifies if it points to the same path
-3. Removes and reconnects if it points to a different path
-4. Provides clear status messages about existing drives
-
-## Security Considerations
-
-- **Credential Handling**: Credentials are stored in the `.env` file and should be kept secure
-- **Secure Connection Methods**: Uses standard Windows networking protocols with proper authentication
-- **Validation**: Validates server accessibility and drive configurations before attempting connections
-- **Error Handling**: Provides detailed error messages without exposing sensitive information
-
-## Troubleshooting
-
-### Common Issues
-
-| Issue | Solution |
-|-------|----------|
-| "Drive letter not found in configuration" | Ensure the drive letter is correctly configured in the `.env` file |
-| "Cannot reach server" | Verify network connectivity and server availability |
-| "Access is denied" | Ensure you have proper permissions to access the share |
-| "Drive is already connected" | Use the `Reconnect` command to refresh the connection |
-
-### Debugging
-
-For detailed debugging information, run the script with the `-Verbose` parameter:
-
-```powershell
-.\src\PSNetDrive.ps1 Connect All -Verbose
-```
-
-## Performance Optimization
-
-PSNetDrive is optimized for performance:
-
-- **Server Grouping**: Groups shares by server to minimize connectivity checks
-- **Parallel Processing**: Processes multiple shares efficiently
-- **Minimal Dependencies**: Uses only built-in PowerShell cmdlets
-- **Efficient Validation**: Validates configurations before attempting connections
+- Credentials stored in `.env` file (keep secure)
+- Standard Windows networking protocols
+- No administrator privileges required
+- Detailed error handling without exposing sensitive data
 
 ## Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
-
 1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## Testing
-
-PSNetDrive includes comprehensive tests using Pester:
-
-```powershell
-# Install Pester if not already installed
-Install-Module -Name Pester -Force -SkipPublisherCheck
-
-# Run tests
-Invoke-Pester -Path .\tests
-```
+2. Create feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit changes (`git commit -m 'Add amazing feature'`)
+4. Push to branch (`git push origin feature/amazing-feature`)
+5. Open Pull Request
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](docs/LICENSE) file for details.
-
-## Roadmap
-
-- [ ] Support for Azure File Shares
-- [ ] Integration with Windows Credential Manager
-- [ ] GUI interface option
-- [ ] Scheduled connection management
-- [ ] Connection history and logging
+MIT License - see [LICENSE](docs/LICENSE) for details.
 
 ---
 
