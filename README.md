@@ -82,6 +82,19 @@ DATA=S|\\10.0.0.50\data|Data Files|domain\user|password
 | `List` | Show connections | `List` |
 | `Status` | Check drive status | `Status` |
 
+## Testing
+
+PSNetDrive includes comprehensive tests using Pester:
+
+```powershell
+# Install Pester if not already installed
+Install-Module -Name Pester -Force -SkipPublisherCheck
+
+# Run tests
+cd ..
+Invoke-Pester -Path .\tests
+```
+
 ## Security
 
 - Credentials stored in `.env` file (keep secure)
