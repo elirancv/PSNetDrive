@@ -25,7 +25,13 @@ PSNetDrive is a PowerShell CLI tool for managing network drive connections in Wi
 
 2. **Configure** - Edit `.env` with your network shares:
    ```
-   SHARE_NAME=DRIVE_LETTER|UNC_PATH|DESCRIPTION|USERNAME|PASSWORD
+   # Format: SHARE_NAME=DRIVE_LETTER|UNC_PATH|DESCRIPTION|USERNAME|PASSWORD
+   
+   # Anonymous share
+   PUBLIC=P|\\192.168.1.100\public|Public Share||
+
+   # Authenticated share
+   DATA=S|\\10.0.0.50\data|Data Files|domain\user|password
    ```
 
 3. **Use**
@@ -55,22 +61,6 @@ PSNetDrive is a PowerShell CLI tool for managing network drive connections in Wi
 - Windows 10/11 or Windows Server 2016/2019/2022
 - PowerShell 5.1+
 - Network access to target shares
-
-## Configuration
-
-The `.env` file uses a simple format:
-```
-SHARE_NAME=DRIVE_LETTER|UNC_PATH|DESCRIPTION|USERNAME|PASSWORD
-```
-
-Example:
-```
-# Anonymous share
-PUBLIC=P|\\192.168.1.100\public|Public Share||
-
-# Authenticated share
-DATA=S|\\10.0.0.50\data|Data Files|domain\user|password
-```
 
 ## Commands
 
