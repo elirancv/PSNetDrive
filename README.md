@@ -25,12 +25,12 @@
 
 ## ✨ Key Features
 
-- 🔄 **Smart Connectivity** - Verifies server accessibility before attempting connections
-- 🚄 **Parallel Processing** - Efficiently handles multiple drives simultaneously
-- 🔐 **Secure Credentials** - Built-in support for authenticated shares
-- 🤖 **Automation Ready** - Perfect for scripts with non-interactive mode
-- 🔁 **Retry Mechanism** - Exponential backoff for reliable connections
-- 📊 **Status Monitoring** - Real-time connection status and server accessibility
+- **Smart Connectivity** - Verifies server accessibility before attempting connections
+- **Parallel Processing** - Efficiently handles multiple drives simultaneously
+- **Secure Credentials** - Built-in support for authenticated shares
+- **Automation Ready** - Perfect for scripts with non-interactive mode
+- **Retry Mechanism** - Exponential backoff for reliable connections
+- **Status Monitoring** - Real-time connection status and server accessibility
 
 ## 🚀 Quick Start
 
