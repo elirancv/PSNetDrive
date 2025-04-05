@@ -232,10 +232,7 @@ This project is licensed under the MIT License - see the [LICENSE](docs/LICENSE)
 ## Roadmap
 
 - [ ] Support for Azure File Shares
-- [ ] Integration with Windows Credential Manager
 - [ ] GUI interface option
-- [ ] Scheduled connection management
-- [ ] Connection history and logging
 
 ---
 
