@@ -4,8 +4,6 @@
   <img src="docs/images/logo.svg" alt="PSNetDrive Logo" width="200"/>
   <p><em>PowerShell Network Drive Management Tool</em></p>
   
-  [![PowerShell Gallery](https://img.shields.io/powershellgallery/v/PSNetDrive.svg)](https://www.powershellgallery.com/packages/PSNetDrive)
-  [![PowerShell Gallery](https://img.shields.io/powershellgallery/dt/PSNetDrive.svg)](https://www.powershellgallery.com/packages/PSNetDrive)
   [![License](https://img.shields.io/badge/license-MIT-blue.png)](docs/LICENSE)
   [![PowerShell](https://img.shields.io/badge/PowerShell-%3E%3D5.1-blue.png)](https://github.com/PowerShell/PowerShell)
   [![Windows](https://img.shields.io/badge/Windows-10%2F11-blue.png)](https://www.microsoft.com/windows)
@@ -36,14 +34,6 @@ PSNetDrive is a robust PowerShell-based command-line interface (CLI) tool design
 - **Network**: Access to the network shares you want to connect
 
 ## Installation
-
-### Option 1: Install from PowerShell Gallery
-
-```powershell
-Install-Module -Name PSNetDrive -Force -Scope CurrentUser
-```
-
-### Option 2: Manual Installation
 
 1. Clone this repository:
    ```powershell
