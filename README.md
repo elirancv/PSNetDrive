@@ -112,7 +112,7 @@ SHARE_NAME=DRIVE_LETTER|UNC_PATH|DESCRIPTION|USERNAME|PASSWORD
 | Parameter | Description | Required |
 |-----------|-------------|----------|
 | `SHARE_NAME` | Unique identifier for the share | Yes |
-| `DRIVE_LETTER` | Single letter (A-Z) to assign to the drive | Yes |
+| `DRIVE_LETTER` | Drive letter (A-Z) to assign to the drive | Yes |
 | `UNC_PATH` | Network path in the format `\\server\share` | Yes |
 | `DESCRIPTION` | Brief description of the share | No |
 | `USERNAME` | Domain username for authentication | No |
