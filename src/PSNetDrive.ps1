@@ -20,11 +20,11 @@ $PSDefaultParameterValues = @{
     - Test connection status
 .NOTES
     Version:        1.0.0
-    Author:         [Your Name]
-    Creation Date:  2024-04-05
+    Author:         elirancv
+    Creation Date:  2025-04-05
     License:        MIT
-    Requirements:   Windows OS, PowerShell 5.1+, Admin rights
-    Project:        https://github.com/yourusername/PSNetDrive
+    Requirements:   Windows OS, PowerShell 5.1+
+    Project:        https://github.com/elirancv/PSNetDrive
 .EXAMPLE
     .\PSNetDrive.ps1 -Connect All
     .\PSNetDrive.ps1 -Connect S

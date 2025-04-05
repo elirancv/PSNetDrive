@@ -11,7 +11,7 @@
     - Both temporary and persistent connections
 .NOTES
     Version:        1.0
-    Author:         Your Name
+    Author:         elirancv
     Creation Date:  $(Get-Date -Format 'yyyy-MM-dd')
 #>
 
