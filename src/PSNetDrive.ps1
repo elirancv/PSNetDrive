@@ -402,7 +402,7 @@ try {
         }
         'Disconnect' {
             if ($Drive -eq 'All') {
-                Disconnect-AllNetworkDrives -AutoYes:$y
+                $null = Disconnect-AllNetworkDrives -AutoYes:$y
             } else {
                 # Check if the drive exists
                 $existingDrive = Get-PSDrive -Name $Drive -ErrorAction SilentlyContinue
@@ -414,7 +414,20 @@ try {
                     Write-Error "Drive $Drive`: is not a network drive"
                     exit 1
                 }
-                Disconnect-NetworkDrive -DriveLetter $Drive
+                
+                # Ask for confirmation if AutoYes is not set
+                if (-not $y) {
+                    Write-Host "Found network drive to disconnect:`n"
+                    $existingDrive | Format-Table Name, DisplayRoot -AutoSize | Out-String | Write-Host
+                    
+                    $confirmation = Read-Host "`nDo you want to disconnect this drive? (y/N)"
+                    if ($confirmation -ne 'y' -and $confirmation -ne 'Y') {
+                        Write-Host "Operation cancelled."
+                        exit 0
+                    }
+                }
+                
+                $null = Disconnect-NetworkDrive -DriveLetter $Drive
             }
         }
         'Reconnect' {
@@ -426,7 +439,19 @@ try {
                     # Check if the drive exists
                     $existingDrive = Get-PSDrive -Name $Drive -ErrorAction SilentlyContinue
                     if ($existingDrive) {
-                        Disconnect-NetworkDrive -DriveLetter $Drive
+                        # Ask for confirmation if AutoYes is not set
+                        if (-not $y) {
+                            Write-Host "Found network drive to disconnect:`n"
+                            $existingDrive | Format-Table Name, DisplayRoot -AutoSize | Out-String | Write-Host
+                            
+                            $confirmation = Read-Host "`nDo you want to disconnect this drive? (y/N)"
+                            if ($confirmation -ne 'y' -and $confirmation -ne 'Y') {
+                                Write-Host "Operation cancelled."
+                                exit 0
+                            }
+                        }
+                        
+                        $null = Disconnect-NetworkDrive -DriveLetter $Drive
                     }
                 }
                 
