@@ -20,6 +20,7 @@ PSNetDrive is a PowerShell CLI tool for managing network drive connections in Wi
    git clone https://github.com/elirancv/PSNetDrive.git
    cd PSNetDrive
    Copy-Item examples\.env.example .env
+   cd src
    ```
 
 2. **Configure** - Edit `.env` with your network shares:
@@ -30,13 +31,13 @@ PSNetDrive is a PowerShell CLI tool for managing network drive connections in Wi
 3. **Use**
    ```powershell
    # Connect all drives
-   .\src\PSNetDrive.ps1 Connect All
+   .\PSNetDrive.ps1 Connect All
 
    # Connect specific drive
-   .\src\PSNetDrive.ps1 Connect S
+   .\PSNetDrive.ps1 Connect S
 
    # List current connections
-   .\src\PSNetDrive.ps1 List
+   .\PSNetDrive.ps1 List
    ```
 
 ## Features
