@@ -2,81 +2,74 @@
 
 <div align="center">
   <img src="docs/images/logo.svg" alt="PSNetDrive Logo" width="200"/>
-  <p><em>PowerShell Network Drive Management Tool</em></p>
+  <h3>🚀 Supercharge Your Network Drive Management</h3>
   
   [![License](https://img.shields.io/badge/license-MIT-blue.png)](docs/LICENSE)
   [![PowerShell](https://img.shields.io/badge/PowerShell-%3E%3D5.1-blue.png)](https://github.com/PowerShell/PowerShell)
   [![Windows](https://img.shields.io/badge/Windows-10%2F11-blue.png)](https://www.microsoft.com/windows)
+  [![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://github.com/elirancv/PSNetDrive/graphs/commit-activity)
 </div>
 
-## Overview
+<p align="center">
+  <b>PSNetDrive</b> is a powerful PowerShell CLI tool that revolutionizes network drive management in Windows environments. Say goodbye to manual drive mapping and hello to automated, secure, and efficient network drive operations.
+</p>
 
-PSNetDrive is a PowerShell CLI tool for managing network drive connections in Windows environments. It provides a simple interface for connecting, disconnecting, and monitoring network drives with features like parallel processing, retry mechanisms, and secure credential handling.
+<p align="center">
+  <a href="#key-features">Key Features</a> •
+  <a href="#quick-start">Quick Start</a> •
+  <a href="#usage">Usage</a> •
+  <a href="#configuration">Configuration</a> •
+  <a href="#security">Security</a> •
+  <a href="#contributing">Contributing</a>
+</p>
 
-## Quick Start
+## ✨ Key Features
 
-1. **Install**
-   ```powershell
-   git clone https://github.com/elirancv/PSNetDrive.git
-   cd PSNetDrive
-   Copy-Item examples\.env.example .env
-   cd src
-   ```
+- 🔄 **Smart Connectivity** - Verifies server accessibility before attempting connections
+- 🚄 **Parallel Processing** - Efficiently handles multiple drives simultaneously
+- 🔐 **Secure Credentials** - Built-in support for authenticated shares
+- 🤖 **Automation Ready** - Perfect for scripts with non-interactive mode
+- 🔁 **Retry Mechanism** - Exponential backoff for reliable connections
+- 📊 **Status Monitoring** - Real-time connection status and server accessibility
 
-2. **Configure** - Edit `.env` with your network shares:
-   ```
-   # Format: SHARE_NAME=DRIVE_LETTER|UNC_PATH|DESCRIPTION|USERNAME|PASSWORD
-   
-   # Anonymous share
-   PUBLIC=P|\\192.168.1.100\public|Public Share||
+## 🚀 Quick Start
 
-   # Authenticated share
-   DATA=S|\\10.0.0.50\data|Data Files|domain\user|password
-   ```
-
-3. **Use**
-   ```powershell
-   # Connect all drives
-   .\PSNetDrive.ps1 Connect All
-
-   # Connect specific drive
-   .\PSNetDrive.ps1 Connect S
-
-   # List current connections
-   .\PSNetDrive.ps1 List
-   ```
-
-## Features
-
-- **Drive Management**: Connect, disconnect, or reconnect network drives
-- **Bulk Operations**: Manage all configured drives with `All` parameter
-- **Smart Connectivity**: Server accessibility verification before connections
-- **Retry Mechanism**: Exponential backoff for reliable connections
-- **Parallel Processing**: Efficient handling of multiple drives
-- **Secure Credentials**: Support for authenticated shares
-- **Non-Interactive Mode**: Use `-y` flag for automated operations
-
-## Requirements
-
+### Prerequisites
 - Windows 10/11 or Windows Server 2016/2019/2022
-- PowerShell 5.1+
+- PowerShell 5.1 or higher
 - Network access to target shares
 
-## Commands
+### Installation
+```powershell
+# Clone the repository
+git clone https://github.com/elirancv/PSNetDrive.git
 
-PSNetDrive supports the following commands:
+# Navigate to the project
+cd PSNetDrive
 
-### Connect
-Connect a specific drive or all configured drives from your .env file
+# Create your configuration
+Copy-Item examples\.env.example .env
 
-### Disconnect
-Disconnect a specific drive or all network drives
+# Move to source directory
+cd src
+```
 
-### Reconnect
-Refresh connection for a specific drive or all drives
+## 🔧 Configuration
 
-### List
-Display all network drives with their connection status and server accessibility
+Configure your network shares in `.env`:
+
+```ini
+# Anonymous share example
+PUBLIC=P|\\192.168.1.100\public|Public Share||
+
+# Authenticated share example
+DATA=S|\\10.0.0.50\data|Data Files|domain\user|password
+
+# Format:
+# SHARE_NAME=DRIVE_LETTER|UNC_PATH|DESCRIPTION|USERNAME|PASSWORD
+```
+
+## 📖 Usage
 
 ```powershell
 # Connect drives
@@ -95,42 +88,49 @@ Display all network drives with their connection status and server accessibility
 .\PSNetDrive.ps1 List              # Show all drives with status
 ```
 
-> **Note:** The `-y` switch can be used with any command that requires confirmation to automatically answer "yes" to prompts.
+> **Pro Tip:** Use the `-y` switch with any command to automatically confirm operations - perfect for automation!
 
-## Testing
+## 🔒 Security
 
-PSNetDrive includes comprehensive tests using Pester:
+- **Configuration**: Sensitive data stored in `.env` file (keep this secure!)
+- **Protocols**: Uses standard Windows networking protocols
+- **Permissions**: No administrator privileges required
+- **Error Handling**: Detailed errors without exposing sensitive information
+
+## 🧪 Testing
+
+Comprehensive testing suite using Pester:
 
 ```powershell
-# Install Pester if not already installed
+# Install Pester (if needed)
 Install-Module -Name Pester -Force -SkipPublisherCheck
 
-# Run tests
+# Run the test suite
 cd ..
 Invoke-Pester -Path .\tests
 ```
 
-## Security
+## 🤝 Contributing
 
-- Credentials stored in `.env` file (keep secure)
-- Standard Windows networking protocols
-- No administrator privileges required
-- Detailed error handling without exposing sensitive data
-
-## Contributing
+We welcome contributions! Here's how you can help:
 
 1. Fork the repository
-2. Create feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit changes (`git commit -m 'Add amazing feature'`)
-4. Push to branch (`git push origin feature/amazing-feature`)
-5. Open Pull Request
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
-## License
+## 📄 License
 
-MIT License - see [LICENSE](docs/LICENSE) for details.
+This project is licensed under the MIT License - see [LICENSE](docs/LICENSE) for details.
 
 ---
 
 <div align="center">
   <p>Made with ❤️ by <a href="https://github.com/elirancv">elirancv</a></p>
+  <p>
+    <a href="https://github.com/elirancv/PSNetDrive/issues">Report Bug</a>
+    •
+    <a href="https://github.com/elirancv/PSNetDrive/issues">Request Feature</a>
+  </p>
 </div>
