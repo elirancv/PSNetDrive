@@ -12,7 +12,7 @@
 .NOTES
     Version:        1.0
     Author:         elirancv
-    Creation Date:  $(Get-Date -Format 'yyyy-MM-dd')
+    Creation Date:  2025-04-05
 #>
 
 # Function to validate drive letter format

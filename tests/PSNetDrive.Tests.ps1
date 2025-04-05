@@ -1,6 +1,17 @@
 #Requires -Version 5.1
 #Requires -Modules @{ ModuleName='Pester'; ModuleVersion='5.0.0' }
 
+<#
+.SYNOPSIS
+    Tests for PSNetDrive functionality.
+.DESCRIPTION
+    Comprehensive tests for PSNetDrive core functions and features.
+.NOTES
+    Version:        1.0
+    Author:         elirancv
+    Creation Date:  2025-04-05
+#>
+
 BeforeAll {
     # Import the scripts
     . (Join-Path $PSScriptRoot '../src/PSNetDrive.Core.ps1')
