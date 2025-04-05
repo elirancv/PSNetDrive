@@ -64,40 +64,35 @@ PSNetDrive is a PowerShell CLI tool for managing network drive connections in Wi
 
 ## Commands
 
-### `Connect <drive|All>`
+PSNetDrive supports the following commands:
+
+### Connect
 Connect a specific drive or all configured drives from your .env file
-```powershell
-# Connect specific drive
-.\PSNetDrive.ps1 Connect S
 
-# Connect all drives with auto-confirm
-.\PSNetDrive.ps1 Connect All -y
-```
-
-### `Disconnect <drive|All>`
+### Disconnect
 Disconnect a specific drive or all network drives
-```powershell
-# Disconnect specific drive
-.\PSNetDrive.ps1 Disconnect M
 
-# Disconnect all drives with auto-confirm
-.\PSNetDrive.ps1 Disconnect All -y
-```
-
-### `Reconnect <drive|All>`
+### Reconnect
 Refresh connection for a specific drive or all drives
-```powershell
-# Reconnect specific drive
-.\PSNetDrive.ps1 Reconnect T
 
-# Reconnect all drives with auto-confirm
-.\PSNetDrive.ps1 Reconnect All -y
-```
-
-### `List`
+### List
 Display all network drives with their connection status and server accessibility
+
 ```powershell
-.\PSNetDrive.ps1 List
+# Connect drives
+.\PSNetDrive.ps1 Connect S          # Connect specific drive
+.\PSNetDrive.ps1 Connect All -y     # Connect all drives with auto-confirm
+
+# Disconnect drives
+.\PSNetDrive.ps1 Disconnect M       # Disconnect specific drive
+.\PSNetDrive.ps1 Disconnect All -y  # Disconnect all drives with auto-confirm
+
+# Reconnect drives
+.\PSNetDrive.ps1 Reconnect T        # Reconnect specific drive
+.\PSNetDrive.ps1 Reconnect All -y   # Reconnect all drives with auto-confirm
+
+# List network drives
+.\PSNetDrive.ps1 List              # Show all drives with status
 ```
 
 > **Note:** The `-y` switch can be used with any command that requires confirmation to automatically answer "yes" to prompts.
