@@ -30,7 +30,6 @@ PSNetDrive is a robust PowerShell-based command-line interface (CLI) tool design
 
 - **Operating System**: Windows 10/11 or Windows Server 2016/2019/2022
 - **PowerShell**: Version 5.1 or later
-- **Permissions**: Administrator privileges
 - **Network**: Access to the network shares you want to connect
 
 ## Installation
@@ -172,7 +171,6 @@ When connecting a drive, PSNetDrive:
 ## Security Considerations
 
 - **Credential Handling**: Credentials are stored in the `.env` file and should be kept secure
-- **Administrator Privileges**: The script requires administrator privileges to manage network drives
 - **Secure Connection Methods**: Uses standard Windows networking protocols with proper authentication
 - **Validation**: Validates server accessibility and drive configurations before attempting connections
 - **Error Handling**: Provides detailed error messages without exposing sensitive information

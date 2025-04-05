@@ -1,6 +1,5 @@
 # PSNetDrive.ps1 - Network Drive Management Script
 #Requires -Version 5.1
-#Requires -RunAsAdministrator
 
 # Override PowerShell's built-in help system
 $PSDefaultParameterValues = @{
