@@ -385,7 +385,7 @@ try {
                 } else { 
                     @(Get-ShareConfig -DriveLetter $Drive) 
                 }
-                Connect-NetworkShares -Configs $configs
+                Connect-NetworkShares -Configs $configs -AutoYes:$y
             } else {
                 Write-Error "Drive letter '$Drive' not found in configuration"
                 Show-Help
@@ -426,7 +426,7 @@ try {
                 } else { 
                     @(Get-ShareConfig -DriveLetter $Drive) 
                 }
-                Connect-NetworkShares -Configs $configs
+                Connect-NetworkShares -Configs $configs -AutoYes:$y
             } else {
                 Write-Error "Drive letter '$Drive' not found in configuration"
                 Show-Help

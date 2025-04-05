@@ -78,7 +78,10 @@ function Connect-NetworkShares {
     [CmdletBinding()]
     param (
         [Parameter(Mandatory)]
-        [array]$Configs
+        [array]$Configs,
+        
+        [Parameter()]
+        [switch]$AutoYes
     )
 
     # Group shares by server to optimize connectivity checks
@@ -185,6 +188,10 @@ function Connect-NetworkShares {
 
 # Function to initialize and connect all shares
 function Initialize-NetworkShares {
+    param(
+        [switch]$AutoYes
+    )
+    
     $start = Get-Date
     Write-Host "Starting network drive connections..." -ForegroundColor Cyan
 
@@ -195,7 +202,7 @@ function Initialize-NetworkShares {
     }
 
     # Connect shares in parallel
-    Connect-NetworkShares -Configs $shareConfigs
+    Connect-NetworkShares -Configs $shareConfigs -AutoYes:$AutoYes
 
     # List all connected drives
     Write-Host "`nCurrently Connected Network Drives:" -ForegroundColor Yellow
