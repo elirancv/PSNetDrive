@@ -121,35 +121,21 @@ SHARE_NAME=DRIVE_LETTER|UNC_PATH|DESCRIPTION|USERNAME|PASSWORD
 ### Example Configuration
 
 ```powershell
-#====================#
-# Corporate Shares   #
-#====================#
+# Network Share by IP (Anonymous)
+PUBLIC=P|\\192.168.1.100\public|Public Share||
 
-# Department Shares (Domain Authentication)
-FINANCE=F|\\corp-fs01\finance|Finance Department|%USERDOMAIN%\%USERNAME%|
-LEGAL=L|\\corp-fs02\legal|Legal Department|%USERDOMAIN%\%USERNAME%|
+# Network Share by IP (Domain Auth)
+DEPT=D|\\192.168.1.101\department|Department Files|%USERDOMAIN%\%USERNAME%|
 
-# Team Shares (Domain Authentication)
-TEAM_DOCS=T|\\corp-fs01\teams|Team Documents|%USERDOMAIN%\%USERNAME%|
+# Network Share by IP (Local Auth)
+DATA=S|\\10.0.0.50\data|Data Files|localuser|password123
 
-#====================#
-# Public Resources   #
-#====================#
+# Network Share by Hostname
+TEAM=T|\\fileserver\team|Team Files|domain\username|
 
-# Read-Only Shares (Anonymous Access)
-POLICIES=O|\\corp-fs02\policies|Company Policies||
-
-#====================#
-# Secured Resources  #
-#====================#
-
-# Restricted Share (Service Account)
-# Example password shown - DO NOT USE THIS!
-REPORTS=R|\\corp-fs03\reports|Financial Reports|svc.reports|P@ssw0rd!2024
-
-# Note: 1. %USERDOMAIN%\%USERNAME% automatically uses current Windows credentials
-#       2. Empty password fields trigger secure password prompt
-#       3. The password shown above is an EXAMPLE ONLY - DO NOT USE IT!
+# Multiple shares on same server
+DOCS=M|\\192.168.1.100\documents|Documents||
+APPS=A|\\192.168.1.100\applications|Applications||
 ```
 
 ## Advanced Features
