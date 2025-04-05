@@ -1,7 +1,7 @@
 # PSNetDrive
 
 <div align="center">
-  <img src="docs/images/logo.png" alt="PSNetDrive Logo" width="200"/>
+  <img src="docs/images/logo.svg" alt="PSNetDrive Logo" width="200"/>
   <p><em>PowerShell Network Drive Management Tool</em></p>
   
   [![PowerShell Gallery](https://img.shields.io/powershellgallery/v/PSNetDrive.svg)](https://www.powershellgallery.com/packages/PSNetDrive)
