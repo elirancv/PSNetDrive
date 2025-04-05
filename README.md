@@ -7,6 +7,7 @@
   [![License](https://img.shields.io/badge/license-MIT-blue.png)](docs/LICENSE)
   [![PowerShell](https://img.shields.io/badge/PowerShell-%3E%3D5.1-blue.png)](https://github.com/PowerShell/PowerShell)
   [![Windows](https://img.shields.io/badge/Windows-10%2F11-blue.png)](https://www.microsoft.com/windows)
+  [![Windows Server](https://img.shields.io/badge/Windows%20Server-2016%2F2019%2F2022-blue.png)](https://www.microsoft.com/windows-server)
   [![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://github.com/elirancv/PSNetDrive/graphs/commit-activity)
 </div>
 
