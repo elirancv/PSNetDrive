@@ -67,10 +67,12 @@ PSNetDrive is a PowerShell CLI tool for managing network drive connections in Wi
 | Command | Description | Example |
 |---------|-------------|---------|
 | `Connect <drive\|All>` | Connect drive(s) | `Connect All -y` |
-| `Disconnect <drive\|All>` | Disconnect drive(s) | `Disconnect M` |
-| `Reconnect <drive\|All>` | Refresh connection(s) | `Reconnect All` |
+| `Disconnect <drive\|All>` | Disconnect drive(s) | `Disconnect M -y` |
+| `Reconnect <drive\|All>` | Refresh connection(s) | `Reconnect All -y` |
 | `List` | Show connections | `List` |
 | `Status` | Check drive status | `Status` |
+
+> Note: The `-y` switch can be used with any command that requires confirmation to automatically answer "yes" to prompts.
 
 ## Testing
 
