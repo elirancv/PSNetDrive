@@ -241,12 +241,6 @@ Invoke-Pester -Path .\tests
 
 This project is licensed under the MIT License - see the [LICENSE](docs/LICENSE) file for details.
 
-## Acknowledgments
-
-- Inspired by the need for reliable network drive management in enterprise environments
-- Built with PowerShell best practices and Microsoft's recommended patterns
-- Thanks to the PowerShell community for their excellent tools and documentation
-
 ## Roadmap
 
 - [ ] Support for Azure File Shares
