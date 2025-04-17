@@ -18,13 +18,20 @@ $PSDefaultParameterValues = @{
     - Reconnect (refresh) drives
     - List current connections
     - Test connection status
+    
+    Supports both SMB/CIFS network shares and WebDAV connections.
 .NOTES
-    Version:        1.0.0
-    Author:         [Your Name]
-    Creation Date:  2024-04-05
+    Version:        1.1.0
+    Author:         elirancv
+    Creation Date:  2025-04-05
     License:        MIT
-    Requirements:   Windows OS, PowerShell 5.1+, Admin rights
-    Project:        https://github.com/yourusername/PSNetDrive
+    Requirements:   Windows OS, PowerShell 5.1+
+    Project:        https://github.com/elirancv/PSNetDrive
+    
+    Configuration:
+    The .env file supports both SMB and WebDAV connections:
+    - SMB Format: SHARE_NAME=DRIVE_LETTER|\\server\share|DESCRIPTION|USERNAME|PASSWORD
+    - WebDAV Format: SHARE_NAME=DRIVE_LETTER|https://server/webdav|DESCRIPTION|USERNAME|PASSWORD
 .EXAMPLE
     .\PSNetDrive.ps1 -Connect All
     .\PSNetDrive.ps1 -Connect S
@@ -101,25 +108,10 @@ Usage:
     .\PSNetDrive.ps1 List
 
 Description:
-    Shows all currently connected network drives with their paths and status.
+    Shows all configured network drives with their connection status and server accessibility.
 
 Example:
     .\PSNetDrive.ps1 List
-"@
-        }
-        'Status' {
-@"
-Show Network Drive Status
-
-Usage:
-    .\PSNetDrive.ps1 Status
-
-Description:
-    Shows detailed connection status for all configured network drives,
-    including whether they are connected and accessible.
-
-Example:
-    .\PSNetDrive.ps1 Status
 "@
         }
     }
@@ -139,8 +131,7 @@ Commands:
     Connect <drive|All>    Connect specified drive letter or all drives from .env
     Disconnect <drive|All> Disconnect specified drive letter or all network drives
     Reconnect <drive|All>  Reconnect (refresh) specified drive or all drives
-    List                   List all currently connected network drives
-    Status                 Show connection status of all configured drives
+    List                   List all network drives with connection status
     Help                   Show this help message
 
 Options:
@@ -153,8 +144,7 @@ Examples:
     .\PSNetDrive.ps1 Connect S          # Connect specific drive (S:)
     .\PSNetDrive.ps1 Disconnect M -y    # Disconnect specific drive (M:)
     .\PSNetDrive.ps1 Disconnect All -y  # Disconnect all network drives without prompting
-    .\PSNetDrive.ps1 List               # List current connections
-    .\PSNetDrive.ps1 Status             # Show connection status
+    .\PSNetDrive.ps1 List               # Show network drive status
     .\PSNetDrive.ps1 Reconnect All -y   # Reconnect all drives without prompting
 
 "@ -ForegroundColor Cyan
@@ -167,7 +157,7 @@ $y = $args -contains '-y'
 
 # Show help if no parameters or help requested
 if (-not $Command -or $Command -eq 'Help' -or $args -contains '-?' -or $args -contains '?' -or $args -contains '-help' -or $args -contains '--help') {
-    if ($Command -and $Command -ne 'Help' -and $Command -in @('Connect', 'Disconnect', 'Reconnect', 'List', 'Status')) {
+    if ($Command -and $Command -ne 'Help' -and $Command -in @('Connect', 'Disconnect', 'Reconnect', 'List')) {
         Show-CommandHelp -Command $Command
         exit 0
     }
@@ -176,7 +166,7 @@ if (-not $Command -or $Command -eq 'Help' -or $args -contains '-?' -or $args -co
 }
 
 # Validate command
-$validCommands = @('Connect', 'Disconnect', 'Reconnect', 'List', 'Status', 'Help')
+$validCommands = @('Connect', 'Disconnect', 'Reconnect', 'List', 'Help')
 if ($Command -notin $validCommands) {
     Write-Error "Invalid command: $Command"
     Show-Help
@@ -240,30 +230,20 @@ function Get-ShareConfig {
     return $config
 }
 
-# Function to list network drives
+# Function to show network drives with status
 function Show-NetworkDrives {
-    Write-Host "`nCurrently Connected Network Drives:" -ForegroundColor Yellow
-    $drives = Get-CimInstance Win32_NetworkConnection | 
+    Write-Host "`nNetwork Drive Status:" -ForegroundColor Yellow
+    
+    # Get current network drives
+    $currentDrives = Get-CimInstance Win32_NetworkConnection | 
         Where-Object { $_.Status -eq 'OK' -and $_.RemoteName -notlike '*\IPC$' } |
         Select-Object @{N='Name';E={$_.LocalName.TrimEnd(':')}}, 
                     @{N='Path';E={$_.RemoteName}},
                     @{N='Status';E={$_.Status}}
     
-    if ($drives) {
-        $drives | Format-Table -AutoSize
-    } else {
-        Write-Host "No network drives currently connected." -ForegroundColor Gray
-    }
-}
-
-# Function to show connection status
-function Show-ConnectionStatus {
-    Write-Host "`nNetwork Drive Connection Status:" -ForegroundColor Yellow
+    # Get configured drives from .env
     $configs = Get-ShareConfiguration
-    $currentDrives = Get-CimInstance Win32_NetworkConnection | 
-        Where-Object { $_.RemoteName -notlike '*\IPC$' } |
-        Select-Object LocalName, RemoteName, @{N='Connected';E={$_.Status -eq 'OK'}}
-
+    
     # Test all servers at once for efficiency
     $servers = $configs | ForEach-Object { ($_.Path -split '\\')[2] } | Select-Object -Unique
     Write-Host "Checking server connectivity..." -ForegroundColor Gray
@@ -279,30 +259,46 @@ function Show-ConnectionStatus {
             $serverStatus[$server] = $false
         }
     }
-
+    
+    # Create a comprehensive table with all information
+    $driveStatusList = @()
+    
     foreach ($config in $configs) {
         $server = ($config.Path -split '\\')[2]
-        $driveLetter = "$($config.Name):"
-        $driveStatus = $currentDrives | Where-Object { $_.LocalName -eq $driveLetter }
+        $driveLetter = $config.Name
+        $currentDrive = $currentDrives | Where-Object { $_.Name -eq $driveLetter }
         
-        $status = @{
-            Drive = $config.Name
+        $status = [PSCustomObject]@{
+            Drive = $driveLetter
             Path = $config.Path
-            Connected = [bool]$driveStatus.Connected
-            Accessible = $serverStatus[$server]
+            Connected = [bool]$currentDrive
+            ServerAccessible = $serverStatus[$server]
+            Status = if ($currentDrive) { $currentDrive.Status } else { "Not Connected" }
         }
-
-        # Display status with color coding
-        $statusColor = if ($status.Connected -and $status.Accessible) { 'Green' }
-                      elseif ($status.Accessible) { 'Yellow' }
-                      else { 'Red' }
-
-        $statusText = if ($status.Connected -and $status.Accessible) { "Connected & Accessible" }
-                     elseif ($status.Connected) { "Connected but Server Inaccessible" }
-                     elseif ($status.Accessible) { "Server Accessible but Drive Not Connected" }
-                     else { "Server Not Accessible" }
-
-        Write-Host "$($status.Drive): $($status.Path) - $statusText" -ForegroundColor $statusColor
+        
+        $driveStatusList += $status
+    }
+    
+    # Display the comprehensive table
+    if ($driveStatusList.Count -gt 0) {
+        Write-Host "`nNetwork Drive Status:" -ForegroundColor Cyan
+        
+        # Format the table with color coding
+        $driveStatusList | ForEach-Object {
+            $statusColor = if ($_.Connected -and $_.ServerAccessible) { 'Green' }
+                          elseif ($_.Connected) { 'Yellow' }
+                          elseif ($_.ServerAccessible) { 'Yellow' }
+                          else { 'Red' }
+            
+            $statusText = if ($_.Connected -and $_.ServerAccessible) { "Connected & Accessible" }
+                       elseif ($_.Connected) { "Connected but Server Inaccessible" }
+                       elseif ($_.ServerAccessible) { "Server Accessible but Drive Not Connected" }
+                       else { "Server Not Accessible" }
+            
+            Write-Host "$($_.Drive): $($_.Path) - $statusText" -ForegroundColor $statusColor
+        }
+    } else {
+        Write-Host "`nNo network drives configured or connected." -ForegroundColor Gray
     }
 }
 
@@ -345,17 +341,19 @@ function Disconnect-AllNetworkDrives {
     
     if ($networkDrives.Count -eq 0) {
         Write-Host "No network drives found to disconnect."
-        return
+        return $true
     }
 
     Write-Host "Found $($networkDrives.Count) network drive(s) to disconnect:`n"
-    $networkDrives | Format-Table Name, DisplayRoot
+    
+    # Ensure the table is displayed properly
+    $networkDrives | Format-Table Name, DisplayRoot -AutoSize | Out-String | Write-Host
 
     if (-not $AutoYes) {
         $confirmation = Read-Host "`nDo you want to disconnect all these drives? (y/N)"
         if ($confirmation -ne 'y' -and $confirmation -ne 'Y') {
             Write-Host "Operation cancelled."
-            return
+            return $false
         }
     }
 
@@ -372,6 +370,8 @@ function Disconnect-AllNetworkDrives {
     else {
         Write-Host "`nDisconnected $successCount out of $($networkDrives.Count) network drives."
     }
+    
+    return $true
 }
 
 # Main execution
@@ -385,7 +385,11 @@ try {
                 } else { 
                     @(Get-ShareConfig -DriveLetter $Drive) 
                 }
-                Connect-NetworkShares -Configs $configs
+                $connectSuccess = Connect-NetworkShares -Configs $configs -AutoYes:$y
+                if (-not $connectSuccess) {
+                    Write-Host "Connection operation was cancelled."
+                    exit 0
+                }
             } else {
                 Write-Error "Drive letter '$Drive' not found in configuration"
                 Show-Help
@@ -394,7 +398,7 @@ try {
         }
         'Disconnect' {
             if ($Drive -eq 'All') {
-                Disconnect-AllNetworkDrives -AutoYes:$y
+                $null = Disconnect-AllNetworkDrives -AutoYes:$y
             } else {
                 # Check if the drive exists
                 $existingDrive = Get-PSDrive -Name $Drive -ErrorAction SilentlyContinue
@@ -406,27 +410,61 @@ try {
                     Write-Error "Drive $Drive`: is not a network drive"
                     exit 1
                 }
-                Disconnect-NetworkDrive -DriveLetter $Drive
+                
+                # Ask for confirmation if AutoYes is not set
+                if (-not $y) {
+                    Write-Host "Found network drive to disconnect:`n"
+                    $existingDrive | Format-Table Name, DisplayRoot -AutoSize | Out-String | Write-Host
+                    
+                    $confirmation = Read-Host "`nDo you want to disconnect this drive? (y/N)"
+                    if ($confirmation -ne 'y' -and $confirmation -ne 'Y') {
+                        Write-Host "Operation cancelled."
+                        exit 0
+                    }
+                }
+                
+                $null = Disconnect-NetworkDrive -DriveLetter $Drive
             }
         }
         'Reconnect' {
             if ($Drive -eq 'All' -or (Get-ShareConfig -DriveLetter $Drive)) {
+                $disconnectSuccess = $true
                 if ($Drive -eq 'All') {
-                    Disconnect-AllNetworkDrives -AutoYes:$y
+                    $disconnectSuccess = Disconnect-AllNetworkDrives -AutoYes:$y
                 } else {
                     # Check if the drive exists
                     $existingDrive = Get-PSDrive -Name $Drive -ErrorAction SilentlyContinue
                     if ($existingDrive) {
-                        Disconnect-NetworkDrive -DriveLetter $Drive
+                        # Ask for confirmation if AutoYes is not set
+                        if (-not $y) {
+                            Write-Host "Found network drive to disconnect:`n"
+                            $existingDrive | Format-Table Name, DisplayRoot -AutoSize | Out-String | Write-Host
+                            
+                            $confirmation = Read-Host "`nDo you want to disconnect this drive? (y/N)"
+                            if ($confirmation -ne 'y' -and $confirmation -ne 'Y') {
+                                Write-Host "Operation cancelled."
+                                exit 0
+                            }
+                        }
+                        
+                        $null = Disconnect-NetworkDrive -DriveLetter $Drive
                     }
                 }
-                Start-Sleep -Seconds 2  # Wait for disconnection
-                $configs = if ($Drive -eq 'All') { 
-                    Get-ShareConfiguration 
-                } else { 
-                    @(Get-ShareConfig -DriveLetter $Drive) 
+                
+                # Only proceed with connection if disconnection was successful or not needed
+                if ($disconnectSuccess) {
+                    Start-Sleep -Seconds 2  # Wait for disconnection
+                    $configs = if ($Drive -eq 'All') { 
+                        Get-ShareConfiguration 
+                    } else { 
+                        @(Get-ShareConfig -DriveLetter $Drive) 
+                    }
+                    $connectSuccess = Connect-NetworkShares -Configs $configs -AutoYes:$y
+                    if (-not $connectSuccess) {
+                        Write-Host "Connection operation was cancelled."
+                        exit 0
+                    }
                 }
-                Connect-NetworkShares -Configs $configs
             } else {
                 Write-Error "Drive letter '$Drive' not found in configuration"
                 Show-Help
@@ -435,9 +473,6 @@ try {
         }
         'List' {
             Show-NetworkDrives
-        }
-        'Status' {
-            Show-ConnectionStatus
         }
     }
 } catch {

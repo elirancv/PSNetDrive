@@ -11,9 +11,12 @@
     - Both temporary and persistent connections
 .NOTES
     Version:        1.0
-    Author:         Your Name
-    Creation Date:  $(Get-Date -Format 'yyyy-MM-dd')
+    Author:         elirancv
+    Creation Date:  2025-04-05
 #>
+
+# Set maximum number of retry attempts for connections
+$maxRetries = 3
 
 # Function to validate drive letter format
 function Test-DriveLetter {
@@ -30,7 +33,17 @@ function Test-NetworkPathFormat {
         [Parameter(Mandatory)]
         [string]$Path
     )
-    return $Path -match '^\\\\[^\\]+\\[^\\]+$'
+    # Support both UNC paths and WebDAV URLs
+    return ($Path -match '^\\\\[^\\]+\\[^\\]+$') -or ($Path -match '^https?://[^/]+/.*$')
+}
+
+# Function to determine if a path is WebDAV
+function Test-IsWebDAV {
+    param (
+        [Parameter(Mandatory)]
+        [string]$Path
+    )
+    return $Path -match '^https?://'
 }
 
 # Function to read and parse .env file
@@ -78,43 +91,101 @@ function Connect-NetworkShares {
     [CmdletBinding()]
     param (
         [Parameter(Mandatory)]
-        [array]$Configs
+        [array]$Configs,
+        
+        [Parameter()]
+        [switch]$AutoYes
     )
 
-    # Group shares by server to optimize connectivity checks
-    $serverGroups = $Configs | Group-Object { ($_.Path -split '\\')[2] }
-    
-    foreach ($group in $serverGroups) {
-        $serverName = $group.Name
-        Write-Host "Checking connection to server $serverName..." -ForegroundColor Cyan
+    # If there are multiple drives to connect and AutoYes is not set, ask for confirmation
+    if ($Configs.Count -gt 1 -and -not $AutoYes) {
+        Write-Host "Found $($Configs.Count) network drive(s) to connect:`n"
         
-        # Test server connectivity with retry
-        $maxRetries = 3
-        $retryCount = 0
-        $isServerReachable = $false
+        # Create a table of drives to connect
+        $drivesToConnect = $Configs | Select-Object @{N='Drive';E={$_.Name}}, @{N='Path';E={$_.Path}}, @{N='Type';E={if (Test-IsWebDAV $_.Path) { 'WebDAV' } else { 'SMB' }}}, @{N='Description';E={$_.Description}}
+        $drivesToConnect | Format-Table Drive, Path, Type, Description -AutoSize | Out-String | Write-Host
         
-        while (-not $isServerReachable -and $retryCount -lt $maxRetries) {
-            try {
-                $isServerReachable = Test-NetConnection -ComputerName $serverName -Port 445 -WarningAction SilentlyContinue -InformationLevel Quiet -ErrorAction Stop
-                if ($isServerReachable) { break }
-            }
-            catch {
-                Write-Warning "Attempt $($retryCount + 1) of $maxRetries to reach server $serverName failed"
-            }
-            $retryCount++
-            if ($retryCount -lt $maxRetries) {
-                Start-Sleep -Seconds (2 * $retryCount)  # Exponential backoff
-            }
+        $confirmation = Read-Host "`nDo you want to connect all these drives? (y/N)"
+        if ($confirmation -ne 'y' -and $confirmation -ne 'Y') {
+            Write-Host "Operation cancelled."
+            return $false
         }
-        
-        if (-not $isServerReachable) {
-            Write-Warning "Cannot reach server $serverName after $maxRetries attempts - skipping related shares"
-            continue
-        }
+    }
 
-        # Process all shares for this server
-        foreach ($config in $group.Group) {
-            try {
+    $success = $true
+    foreach ($config in $Configs) {
+        try {
+            if (Test-IsWebDAV $config.Path) {
+                # WebDAV connection
+                Write-Host "Connecting to WebDAV share at $($config.Path)..." -ForegroundColor Cyan
+                
+                # Check if drive already exists
+                $existingDrive = Get-PSDrive -Name $config.Name -ErrorAction SilentlyContinue
+                if ($existingDrive) {
+                    # Check if it's the same path
+                    if ($existingDrive.DisplayRoot -eq $config.Path) {
+                        Write-Host "Drive $($config.Name): already connected to $($config.Path)" -ForegroundColor Yellow
+                        continue
+                    }
+                    else {
+                        Write-Host "Drive $($config.Name): exists but points to different path. Removing..." -ForegroundColor Yellow
+                        # Use net use to remove the drive
+                        $netUse = New-Object System.Diagnostics.ProcessStartInfo
+                        $netUse.FileName = "net.exe"
+                        $netUse.Arguments = "use $($config.Name): /delete /y"
+                        $netUse.UseShellExecute = $false
+                        $netUse.RedirectStandardOutput = $true
+                        $netUse.RedirectStandardError = $true
+                        $netUse.CreateNoWindow = $true
+                        
+                        $process = New-Object System.Diagnostics.Process
+                        $process.StartInfo = $netUse
+                        $process.Start() | Out-Null
+                        $process.WaitForExit()
+                        
+                        # Wait a moment for the drive to be fully released
+                        Start-Sleep -Seconds 2
+                    }
+                }
+                
+                # Map the WebDAV drive using net use
+                $netUse = New-Object System.Diagnostics.ProcessStartInfo
+                $netUse.FileName = "net.exe"
+                $netUse.Arguments = "use $($config.Name): `"$($config.Path)`""
+                
+                # Add credentials if provided
+                if ($config.Credential) {
+                    $username = $config.Credential.UserName
+                    $password = $config.Credential.GetNetworkCredential().Password
+                    $netUse.Arguments += " /user:$username $password"
+                }
+                
+                $netUse.UseShellExecute = $false
+                $netUse.RedirectStandardOutput = $true
+                $netUse.RedirectStandardError = $true
+                $netUse.CreateNoWindow = $true
+                
+                $process = New-Object System.Diagnostics.Process
+                $process.StartInfo = $netUse
+                $process.Start() | Out-Null
+                $errorOutput = $process.StandardError.ReadToEnd()
+                $process.WaitForExit()
+                
+                if ($process.ExitCode -ne 0) {
+                    Write-Error "Failed to map WebDAV drive $($config.Name): $errorOutput"
+                    $success = $false
+                } else {
+                    # Verify the connection is working
+                    $testPath = Join-Path -Path "$($config.Name):" -ChildPath "."
+                    if (Test-Path -Path $testPath -ErrorAction Stop) {
+                        Write-Host "Successfully connected WebDAV drive $($config.Name) to $($config.Path)" -ForegroundColor Green
+                    } else {
+                        Write-Error "WebDAV drive $($config.Name) connected but path is not accessible"
+                        $success = $false
+                    }
+                }
+            } else {
+                # SMB connection (existing code)
                 # Check if drive already exists
                 $existingDrive = Get-PSDrive -Name $config.Name -ErrorAction SilentlyContinue
                 if ($existingDrive) {
@@ -151,6 +222,7 @@ function Connect-NetworkShares {
                 
                 while (-not $driveConnected -and $retryCount -lt $maxRetries) {
                     try {
+                        Write-Host "Attempting to connect drive $($config.Name) to $($config.Path) (Attempt $($retryCount + 1) of $maxRetries)..." -ForegroundColor Cyan
                         $null = New-PSDrive @params
                         $driveConnected = $true
                         
@@ -172,19 +244,25 @@ function Connect-NetworkShares {
                         }
                         else {
                             Write-Error "Failed to connect drive $($config.Name) after $maxRetries attempts: $_"
+                            $success = $false
                         }
                     }
                 }
             }
-            catch {
-                Write-Error "Error processing drive $($config.Name): $_"
-            }
+        } catch {
+            Write-Error "Failed to connect drive $($config.Name): $_"
+            $success = $false
         }
     }
+    return $success
 }
 
 # Function to initialize and connect all shares
 function Initialize-NetworkShares {
+    param(
+        [switch]$AutoYes
+    )
+    
     $start = Get-Date
     Write-Host "Starting network drive connections..." -ForegroundColor Cyan
 
@@ -195,7 +273,7 @@ function Initialize-NetworkShares {
     }
 
     # Connect shares in parallel
-    Connect-NetworkShares -Configs $shareConfigs
+    Connect-NetworkShares -Configs $shareConfigs -AutoYes:$AutoYes
 
     # List all connected drives
     Write-Host "`nCurrently Connected Network Drives:" -ForegroundColor Yellow
